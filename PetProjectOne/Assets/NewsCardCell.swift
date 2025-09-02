@@ -1,16 +1,9 @@
-//
-//  NewsCardCell.swift
-//  PetProjectOne
-//
-//  Created by Георгий Полежаев on 25.08.2025.
-//
-
 import UIKit
 
-class NewsCardCell: UIView {
+class NewsCardCell: UITableViewCell {
     
     // MARK: - News Card 1
-    // вехрняя часть карточки новостей
+    // верхняя часть карточки новостей
     private let imageContainer: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor(hex: "#B3BBD4")
@@ -57,43 +50,46 @@ class NewsCardCell: UIView {
     
     // кнопка Read More
     private let readMoreButton: UIButton = {
-        let button = UIButton()
+        let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         
-        // Черный фон и овальная форма
         button.backgroundColor = .black
         button.layer.cornerRadius = 22
         button.clipsToBounds = true
-        
-        // Текст кнопки
         button.setTitle("Read More", for: .normal)
         button.setTitleColor(.white, for: .normal)
         
-        // Шрифт текста
+
         if let customFont = UIFont(name: "PlusJakartaSans-SemiBold", size: 14) {
             button.titleLabel?.font = customFont
         } else {
             button.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
         }
         
-        // Иконка шеврона справа
-        if let chevronImage = UIImage(named: "Chevron_Read_more") {
-            button.setImage(chevronImage, for: .normal)
-            button.imageView?.contentMode = .scaleAspectFit
-            button.semanticContentAttribute = .forceRightToLeft
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
+
+        if #available(iOS 15.0, *) {
+            var config = UIButton.Configuration.plain()
+            config.image = UIImage(named: "Chevron_Read_more")
+            config.imagePlacement = .trailing
+            config.imagePadding = 10
+            config.contentInsets = NSDirectionalEdgeInsets(top: 17, leading: 98, bottom: 17, trailing: 98)
+            button.configuration = config
+        } else {
+            if let chevronImage = UIImage(named: "Chevron_Read_more") {
+                button.setImage(chevronImage, for: .normal)
+                button.imageView?.contentMode = .scaleAspectFit
+                button.semanticContentAttribute = .forceRightToLeft
+                button.titleEdgeInsets = UIEdgeInsets(top: 0, left: -10, bottom: 0, right: 10)
+                button.contentEdgeInsets = UIEdgeInsets(top: 17, left: 98, bottom: 17, right: 98)
+            }
         }
         
-        // Большие отступы для вытянутой формы
-        button.contentEdgeInsets = UIEdgeInsets(top: 17, left: 98, bottom: 17, right: 98)
-        
-        // Включаем взаимодействие
         button.isUserInteractionEnabled = true
         
         return button
     }()
     
-    //контейнер для текста
+    // контейнер для текста
     private let contentContainer: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -101,33 +97,35 @@ class NewsCardCell: UIView {
     }()
     
     // MARK: - Initialization
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupViews()
         setupButtonActions()
+        selectionStyle = .none
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupViews()
         setupButtonActions()
+        selectionStyle = .none
     }
     
     // MARK: - Setup
     private func setupViews() {
-        backgroundColor = .white
-        layer.cornerRadius = 12
-        clipsToBounds = true
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.1
-        layer.shadowOffset = CGSize(width: 0, height: 2)
-        layer.shadowRadius = 4
+        backgroundColor = .clear
+        contentView.backgroundColor = .white
+        contentView.layer.cornerRadius = 12
+        contentView.clipsToBounds = true
+        contentView.layer.shadowColor = UIColor.black.cgColor
+        contentView.layer.shadowOpacity = 0.1
+        contentView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        contentView.layer.shadowRadius = 4
         
-        // Добавляем контейнеры
-        addSubview(imageContainer)
-        addSubview(contentContainer)
+        contentView.addSubview(imageContainer)
+        contentView.addSubview(contentContainer)
         
-        // Контент нижней части
+        // контент нижней части
         let textStack = UIStackView(arrangedSubviews: [titleLabel, descriptionLabel, readMoreButton])
         textStack.axis = .vertical
         textStack.spacing = 12
@@ -142,37 +140,36 @@ class NewsCardCell: UIView {
         contentContainer.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            // Верхний блок
-            imageContainer.topAnchor.constraint(equalTo: topAnchor),
-            imageContainer.leadingAnchor.constraint(equalTo: leadingAnchor),
-            imageContainer.trailingAnchor.constraint(equalTo: trailingAnchor),
+            // верхний блок с отступами
+            imageContainer.topAnchor.constraint(equalTo: contentView.topAnchor),
+            imageContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            imageContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             imageContainer.heightAnchor.constraint(equalToConstant: 240),
             
-            // Нижний блок
+            // нижний блок с отступами
             contentContainer.topAnchor.constraint(equalTo: imageContainer.bottomAnchor),
-            contentContainer.leadingAnchor.constraint(equalTo: leadingAnchor),
-            contentContainer.trailingAnchor.constraint(equalTo: trailingAnchor),
-            contentContainer.bottomAnchor.constraint(equalTo: bottomAnchor),
-            
-            // Текстовый стек
+            contentContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            contentContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            contentContainer.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+        
+            // текстовый стек
             textStack.topAnchor.constraint(equalTo: contentContainer.topAnchor),
             textStack.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
             textStack.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
             textStack.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor),
             
-            // Фиксированные размеры кнопки
+            // фиксированные размеры кнопки
             readMoreButton.widthAnchor.constraint(equalToConstant: 341),
             readMoreButton.heightAnchor.constraint(equalToConstant: 44)
         ])
         
-        // Центрируем кнопку по горизонтали
         NSLayoutConstraint.activate([
             readMoreButton.centerXAnchor.constraint(equalTo: contentContainer.centerXAnchor)
         ])
     }
     
     private func setupButtonActions() {
-        // Обработка нажатия
+        // обработка нажатия
         readMoreButton.addTarget(self, action: #selector(buttonTouchedDown), for: .touchDown)
         readMoreButton.addTarget(self, action: #selector(buttonTouchedUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
         readMoreButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
@@ -215,7 +212,7 @@ class NewsCardCell: UIView {
     }
     
     // MARK: - Layout
-    override var intrinsicContentSize: CGSize {
+    override func systemLayoutSizeFitting(_ targetSize: CGSize, withHorizontalFittingPriority horizontalFittingPriority: UILayoutPriority, verticalFittingPriority: UILayoutPriority) -> CGSize {
         return CGSize(width: 361, height: 411)
     }
 }

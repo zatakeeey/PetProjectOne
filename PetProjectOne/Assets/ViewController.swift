@@ -124,7 +124,8 @@ class ViewController: UIViewController {
         tableView.separatorStyle = .none
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "CollectionCell")
+        tableView.register(NewsCardCell.self, forCellReuseIdentifier: "NewsCardCell")
         tableView.register(NewsCardCellSimple.self, forCellReuseIdentifier: "NewsCardCellSimple")
         view.addSubview(tableView)
         
@@ -144,35 +145,51 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        switch section {
+        case 0, 1: return 1
+        case 2: return 2
+        default: return 0
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.backgroundColor = .clear
-        cell.selectionStyle = .none
-        
-        cell.contentView.subviews.forEach { $0.removeFromSuperview() }
-        
         switch indexPath.section {
-        case 0:
-            setupCollectionView(in: cell, tag: 0)
-        case 1:
-            setupCollectionView(in: cell, tag: 1)
+        case 0, 1:
+            let cell = tableView.dequeueReusableCell(withIdentifier: "CollectionCell", for: indexPath)
+            cell.backgroundColor = .clear
+            cell.selectionStyle = .none
+            cell.contentView.subviews.forEach { $0.removeFromSuperview() }
+            
+            setupCollectionView(in: cell, tag: indexPath.section)
+            return cell
+            
         case 2:
-            setupNewsSection(in: cell)
+            // новостные ячейки - чередуем два типа
+            if indexPath.row == 0 {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "NewsCardCell", for: indexPath) as! NewsCardCell
+                cell.configure(title: "Lorem ipsum dolor", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.")
+                return cell
+            } else {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "NewsCardCellSimple", for: indexPath) as! NewsCardCellSimple
+                cell.configure(title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud ex...")
+                return cell
+            }
+            
         default:
-            break
+            return UITableViewCell()
         }
-        
-        return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch indexPath.section {
-        case 0: return 240 + 24 // CollectionView + отступы
+        case 0: return 240 + 24 
         case 1: return favorites.isEmpty ? 0 : 240 + 24 // скрываем если пусто
-        case 2: return UITableView.automaticDimension // автоматическая высота news
+        case 2:
+            if indexPath.row == 0 {
+                return 411
+            } else {
+                return 203
+            }
         default: return 0
         }
     }
@@ -240,7 +257,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         }
     }
     
-    // MARK: - Настройка секций
+    // MARK: - Настройка коллекций
     private func setupCollectionView(in cell: UITableViewCell, tag: Int) {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
@@ -263,40 +280,6 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             collectionView.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor),
             collectionView.heightAnchor.constraint(equalToConstant: 240)
-        ])
-    }
-    
-    private func setupNewsSection(in cell: UITableViewCell) {
-        cell.contentView.subviews.forEach { $0.removeFromSuperview() }
-        
-        let newsItems = [
-            (title: "Lorem ipsum dolor",
-             description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."),
-            
-            (title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-             description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud ex...")
-        ]
-        
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.spacing = 12
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        cell.contentView.addSubview(stackView)
-        
-        for newsItem in newsItems {
-            let newsCardCell = NewsCardCell()
-            newsCardCell.configure(title: newsItem.title, description: newsItem.description)
-            newsCardCell.translatesAutoresizingMaskIntoConstraints = false
-            
-            stackView.addArrangedSubview(newsCardCell)
-            
-        }
-        
-        NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 12),
-            stackView.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
-            stackView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
-            stackView.bottomAnchor.constraint(lessThanOrEqualTo: cell.contentView.bottomAnchor, constant: -12)
         ])
     }
 }

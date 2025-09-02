@@ -1,13 +1,6 @@
-//
-//  NewsCardCellSimple.swift
-//  PetProjectOne
-//
-//  Created by Георгий Полежаев on 25.08.2025.
-//
-
 import UIKit
 
-class NewsCardCellSimple: UIView {
+class NewsCardCellSimple: UITableViewCell {
     
     // MARK: - UI Elements
     private let titleLabel: UILabel = {
@@ -44,7 +37,7 @@ class NewsCardCellSimple: UIView {
     }()
     
     private let readMoreButton: UIButton = {
-        let button = UIButton()
+        let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         
         button.backgroundColor = .black
@@ -60,14 +53,26 @@ class NewsCardCellSimple: UIView {
             button.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
         }
         
-        if let chevronImage = UIImage(named: "Chevron_Read_more") {
-            button.setImage(chevronImage, for: .normal)
-            button.imageView?.contentMode = .scaleAspectFit
-            button.semanticContentAttribute = .forceRightToLeft
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
+        // Исправление deprecated imageEdgeInsets с использованием UIButtonConfiguration
+        if #available(iOS 15.0, *) {
+            var config = UIButton.Configuration.plain()
+            config.image = UIImage(named: "Chevron_Read_more")
+            config.imagePlacement = .trailing
+            config.imagePadding = 10
+            config.contentInsets = NSDirectionalEdgeInsets(top: 17, leading: 98, bottom: 17, trailing: 98)
+            button.configuration = config
+        } else {
+            // Fallback для версий ниже iOS 15
+            if let chevronImage = UIImage(named: "Chevron_Read_more") {
+                button.setImage(chevronImage, for: .normal)
+                button.imageView?.contentMode = .scaleAspectFit
+                button.semanticContentAttribute = .forceRightToLeft
+                // Для старых версий используем старый подход
+                button.titleEdgeInsets = UIEdgeInsets(top: 0, left: -10, bottom: 0, right: 10)
+                button.contentEdgeInsets = UIEdgeInsets(top: 17, left: 98, bottom: 17, right: 98)
+            }
         }
         
-        button.contentEdgeInsets = UIEdgeInsets(top: 17, left: 98, bottom: 17, right: 98)
         button.isUserInteractionEnabled = true
         
         return button
@@ -84,50 +89,51 @@ class NewsCardCellSimple: UIView {
     }()
     
     // MARK: - Initialization
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupViews()
         setupButtonActions()
+        selectionStyle = .none
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupViews()
         setupButtonActions()
+        selectionStyle = .none
     }
     
     // MARK: - Setup
     private func setupViews() {
-        // Основные настройки карточки
-        backgroundColor = .white
-        layer.cornerRadius = 32
-        clipsToBounds = true
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.1
-        layer.shadowOffset = CGSize(width: 0, height: 2)
-        layer.shadowRadius = 4
+        // основные настройки карточки
+        backgroundColor = .clear
+        contentView.backgroundColor = .white
+        contentView.layer.cornerRadius = 32
+        contentView.clipsToBounds = true
+        contentView.layer.shadowColor = UIColor.black.cgColor
+        contentView.layer.shadowOpacity = 0.1
+        contentView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        contentView.layer.shadowRadius = 4
         
-        // Добавляем элементы в стек
         contentStack.addArrangedSubview(titleLabel)
         contentStack.addArrangedSubview(descriptionLabel)
         contentStack.addArrangedSubview(readMoreButton)
         
-        addSubview(contentStack)
+        contentView.addSubview(contentStack)
         
-       
         NSLayoutConstraint.activate([
-            // стек заполняет всю карточку
-            contentStack.topAnchor.constraint(equalTo: topAnchor),
-            contentStack.leadingAnchor.constraint(equalTo: leadingAnchor),
-            contentStack.trailingAnchor.constraint(equalTo: trailingAnchor),
-            contentStack.bottomAnchor.constraint(equalTo: bottomAnchor),
+            // стек с отступами по бокам
+            contentStack.topAnchor.constraint(equalTo: contentView.topAnchor),
+            contentStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            contentStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            contentStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             
             // фиксированный размер кнопки
             readMoreButton.widthAnchor.constraint(equalToConstant: 341),
             readMoreButton.heightAnchor.constraint(equalToConstant: 44),
             
             // центрирование кнопки
-            readMoreButton.centerXAnchor.constraint(equalTo: centerXAnchor)
+            readMoreButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
         ])
     }
     
@@ -169,7 +175,7 @@ class NewsCardCellSimple: UIView {
     }
     
     // MARK: - Layout
-    override var intrinsicContentSize: CGSize {
+    override func systemLayoutSizeFitting(_ targetSize: CGSize, withHorizontalFittingPriority horizontalFittingPriority: UILayoutPriority, verticalFittingPriority: UILayoutPriority) -> CGSize {
         return CGSize(width: 361, height: 203) // точный размер карточки
     }
 }
