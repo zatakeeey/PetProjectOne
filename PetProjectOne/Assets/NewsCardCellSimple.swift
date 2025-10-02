@@ -14,7 +14,7 @@ class NewsCardCellSimple: UITableViewCell {
         }
         
         label.textColor = .black
-        label.numberOfLines = 2 // две строки для длинного заголовка
+        label.numberOfLines = 3 // две строки для длинного заголовка
         label.textAlignment = .left
         return label
     }()
@@ -23,10 +23,10 @@ class NewsCardCellSimple: UITableViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         
-        if let customFont = UIFont(name: "PlusJakartaSans-Regular", size: 14) {
+        if let customFont = UIFont(name: "PlusJakartaSans-Regular", size: 12) {
             label.font = customFont
         } else {
-            label.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+            label.font = UIFont.systemFont(ofSize: 12, weight: .regular)
         }
         
         label.textColor = UIColor(hex: "#666666")
@@ -59,7 +59,7 @@ class NewsCardCellSimple: UITableViewCell {
             config.image = UIImage(named: "Chevron_Read_more")
             config.imagePlacement = .trailing
             config.imagePadding = 10
-            config.contentInsets = NSDirectionalEdgeInsets(top: 17, leading: 98, bottom: 17, trailing: 98)
+            config.contentInsets = NSDirectionalEdgeInsets(top: 17, leading: 127, bottom: 17, trailing: 141)
             button.configuration = config
         } else {
             // Fallback для версий ниже iOS 15
@@ -69,23 +69,13 @@ class NewsCardCellSimple: UITableViewCell {
                 button.semanticContentAttribute = .forceRightToLeft
                 // Для старых версий используем старый подход
                 button.titleEdgeInsets = UIEdgeInsets(top: 0, left: -10, bottom: 0, right: 10)
-                button.contentEdgeInsets = UIEdgeInsets(top: 17, left: 98, bottom: 17, right: 98)
+                button.contentEdgeInsets = UIEdgeInsets(top: 17, left: 127, bottom: 17, right: 141)
             }
         }
         
         button.isUserInteractionEnabled = true
         
         return button
-    }()
-    
-    private let contentStack: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .vertical
-        stack.spacing = 12
-        stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        return stack
     }()
     
     // MARK: - Initialization
@@ -107,35 +97,46 @@ class NewsCardCellSimple: UITableViewCell {
     private func setupViews() {
         // основные настройки карточки
         backgroundColor = .clear
-        contentView.backgroundColor = .white
+        contentView.backgroundColor = .clear
         contentView.layer.cornerRadius = 32
         contentView.clipsToBounds = true
-        contentView.layer.shadowColor = UIColor.black.cgColor
-        contentView.layer.shadowOpacity = 0.1
-        contentView.layer.shadowOffset = CGSize(width: 0, height: 2)
-        contentView.layer.shadowRadius = 4
         
-        contentStack.addArrangedSubview(titleLabel)
-        contentStack.addArrangedSubview(descriptionLabel)
-        contentStack.addArrangedSubview(readMoreButton)
-        
-        contentView.addSubview(contentStack)
+        let containerView = UIView()
+        containerView.backgroundColor = .white
+        containerView.layer.cornerRadius = 32
+        containerView.clipsToBounds = true
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(containerView)
         
         NSLayoutConstraint.activate([
-            // стек с отступами по бокам
-            contentStack.topAnchor.constraint(equalTo: contentView.topAnchor),
-            contentStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            contentStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            contentStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            
-            // фиксированный размер кнопки
-            readMoreButton.widthAnchor.constraint(equalToConstant: 341),
-            readMoreButton.heightAnchor.constraint(equalToConstant: 44),
-            
-            // центрирование кнопки
-            readMoreButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
-        ])
-    }
+                containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+                containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+                containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+                containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
+            ])
+        
+        // ПЕРЕНОСИМ ЭЛЕМЕНТЫ В КОНТЕЙНЕР
+            containerView.addSubview(titleLabel)
+            containerView.addSubview(descriptionLabel)
+            containerView.addSubview(readMoreButton)
+        
+        NSLayoutConstraint.activate([
+                // Отступы внутри контейнера
+                titleLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 8),
+                titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+                titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+                
+                descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+                descriptionLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+                descriptionLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+                
+                readMoreButton.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 20),
+                readMoreButton.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+                readMoreButton.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -10),
+                //readMoreButton.widthAnchor.constraint(equalToConstant: 341),
+                readMoreButton.heightAnchor.constraint(equalToConstant: 44)
+            ])
+        }
     
     private func setupButtonActions() {
         readMoreButton.addTarget(self, action: #selector(buttonTouchedDown), for: .touchDown)

@@ -8,7 +8,7 @@ class NewsCardCell: UITableViewCell {
         let view = UIView()
         view.backgroundColor = UIColor(hex: "#B3BBD4")
         view.clipsToBounds = true
-        view.layer.cornerRadius = 20
+        view.layer.cornerRadius = 32
         view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         return view
     }()
@@ -25,7 +25,7 @@ class NewsCardCell: UITableViewCell {
         }
         
         label.textColor = .black
-        label.numberOfLines = 1
+        label.numberOfLines = 3
         label.textAlignment = .left
         return label
     }()
@@ -35,7 +35,7 @@ class NewsCardCell: UITableViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         
-        if let customFont = UIFont(name: "PlusJakartaSans-Regular", size: 14) {
+        if let customFont = UIFont(name: "PlusJakartaSans-Regular", size: 12) {
             label.font = customFont
         } else {
             label.font = UIFont.systemFont(ofSize: 14, weight: .regular)
@@ -92,9 +92,11 @@ class NewsCardCell: UITableViewCell {
     // контейнер для текста
     private let contentContainer: UIView = {
         let view = UIView()
-        view.backgroundColor = .white
-        return view
-    }()
+            view.backgroundColor = .white
+            view.layer.cornerRadius = 32 // ← ИЗМЕНИЛИ НА 32
+            view.clipsToBounds = true
+            return view
+        }()
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -114,16 +116,12 @@ class NewsCardCell: UITableViewCell {
     // MARK: - Setup
     private func setupViews() {
         backgroundColor = .clear
-        contentView.backgroundColor = .white
-        contentView.layer.cornerRadius = 12
+        contentView.backgroundColor = .clear
+        contentView.layer.cornerRadius = 32
         contentView.clipsToBounds = true
-        contentView.layer.shadowColor = UIColor.black.cgColor
-        contentView.layer.shadowOpacity = 0.1
-        contentView.layer.shadowOffset = CGSize(width: 0, height: 2)
-        contentView.layer.shadowRadius = 4
         
-        contentView.addSubview(imageContainer)
         contentView.addSubview(contentContainer)
+        contentView.addSubview(imageContainer)
         
         // контент нижней части
         let textStack = UIStackView(arrangedSubviews: [titleLabel, descriptionLabel, readMoreButton])
@@ -141,19 +139,19 @@ class NewsCardCell: UITableViewCell {
         
         NSLayoutConstraint.activate([
             // верхний блок с отступами
-            imageContainer.topAnchor.constraint(equalTo: contentView.topAnchor),
+            imageContainer.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             imageContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             imageContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             imageContainer.heightAnchor.constraint(equalToConstant: 240),
             
             // нижний блок с отступами
-            contentContainer.topAnchor.constraint(equalTo: imageContainer.bottomAnchor),
+            contentContainer.topAnchor.constraint(equalTo: imageContainer.topAnchor),
             contentContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             contentContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             contentContainer.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
         
             // текстовый стек
-            textStack.topAnchor.constraint(equalTo: contentContainer.topAnchor),
+            textStack.topAnchor.constraint(equalTo: imageContainer.bottomAnchor, constant: -16),
             textStack.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
             textStack.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
             textStack.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor),
@@ -208,11 +206,12 @@ class NewsCardCell: UITableViewCell {
     // MARK: - Configuration
     func configure(title: String, description: String) {
         titleLabel.text = title
-        descriptionLabel.text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        descriptionLabel.text = description // ← Исправьте, чтобы использовалось переданное описание
     }
     
     // MARK: - Layout
     override func systemLayoutSizeFitting(_ targetSize: CGSize, withHorizontalFittingPriority horizontalFittingPriority: UILayoutPriority, verticalFittingPriority: UILayoutPriority) -> CGSize {
-        return CGSize(width: 361, height: 411)
+        let size = super.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: horizontalFittingPriority, verticalFittingPriority: verticalFittingPriority)
+            return size
     }
 }

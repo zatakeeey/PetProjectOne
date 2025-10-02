@@ -1,5 +1,13 @@
 import UIKit
 
+struct NewsItem {
+    let id: UUID
+    let title: String
+    let description: String
+    let hasImage: Bool // определяет тип карточки
+    let isFeatured: Bool
+}
+
 class ViewController: UIViewController {
     private let tableView = UITableView(frame: .zero, style: .grouped)
     
@@ -8,6 +16,16 @@ class ViewController: UIViewController {
         Asset(title: "Mercedes C", price: "12 000 USD", category: "Cars"),
         Asset(title: "Tesla Model S", price: "1 000 USD", category: "Cars")
     ]
+    
+    private var news: [NewsItem] = [
+            NewsItem(id: UUID(), title: "Lorem ipsum dolor",
+                    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                    hasImage: true, isFeatured: true),
+            NewsItem(id: UUID(), title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+                    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+                    hasImage: false, isFeatured: false)
+        ]
+    
     private var favorites: Set<UUID> = []
     
     override func viewDidLoad() {
@@ -125,6 +143,7 @@ class ViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "CollectionCell")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "NewsPlaceholderCell")
         tableView.register(NewsCardCell.self, forCellReuseIdentifier: "NewsCardCell")
         tableView.register(NewsCardCellSimple.self, forCellReuseIdentifier: "NewsCardCellSimple")
         view.addSubview(tableView)
@@ -147,7 +166,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0, 1: return 1
-        case 2: return 2
+        case 2: return news.count
         default: return 0
         }
     }
@@ -164,21 +183,28 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             return cell
             
         case 2:
-            // новостные ячейки - чередуем два типа
-            if indexPath.row == 0 {
-                let cell = tableView.dequeueReusableCell(withIdentifier: "NewsCardCell", for: indexPath) as! NewsCardCell
-                cell.configure(title: "Lorem ipsum dolor", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.")
-                return cell
-            } else {
-                let cell = tableView.dequeueReusableCell(withIdentifier: "NewsCardCellSimple", for: indexPath) as! NewsCardCellSimple
-                cell.configure(title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud ex...")
-                return cell
+                let newsItem = news[indexPath.row]
+                
+                if newsItem.hasImage {
+                    // Большая карточка с изображением
+                    if let cell = tableView.dequeueReusableCell(withIdentifier: "NewsCardCell") as? NewsCardCell {
+                        cell.configure(title: newsItem.title, description: newsItem.description)
+                        return cell
+                    }
+                } else {
+                    // Маленькая карточка без изображения
+                    if let cell = tableView.dequeueReusableCell(withIdentifier: "NewsCardCellSimple") as? NewsCardCellSimple {
+                        cell.configure(title: newsItem.title, description: newsItem.description)
+                        return cell
+                    }
+                }
+                return createFallbackCell(height: newsItem.hasImage ? 411 : 203,
+                                        text: newsItem.hasImage ? "NewsCardCell" : "NewsCardCellSimple")
+                
+            default:
+                return UITableViewCell()
             }
-            
-        default:
-            return UITableViewCell()
         }
-    }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch indexPath.section {
@@ -186,9 +212,9 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         case 1: return favorites.isEmpty ? 0 : 240 + 24 // скрываем если пусто
         case 2:
             if indexPath.row == 0 {
-                return 411
+                return 411 + 16
             } else {
-                return 203
+                return 203 + 16
             }
         default: return 0
         }
@@ -257,7 +283,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         }
     }
     
-    // MARK: - Настройка коллекций
+    // MARK: - Настройка горизонтальных коллекций
     private func setupCollectionView(in cell: UITableViewCell, tag: Int) {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
@@ -326,4 +352,44 @@ extension ViewController: AssetCardDelegate {
     func isFavorite(asset: Asset) -> Bool {
         favorites.contains(asset.id)
     }
+}
+
+
+
+private func createFallbackCell(height: CGFloat, text: String) -> UITableViewCell {
+    let cell = UITableViewCell()
+    cell.backgroundColor = .clear
+    cell.contentView.backgroundColor = .clear
+    cell.selectionStyle = .none
+    
+    let placeholderView = UIView()
+    placeholderView.backgroundColor = .white
+    placeholderView.layer.cornerRadius = 12
+    placeholderView.translatesAutoresizingMaskIntoConstraints = false
+    cell.contentView.addSubview(placeholderView)
+    
+    NSLayoutConstraint.activate([
+        placeholderView.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 8),
+        placeholderView.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
+        placeholderView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
+        placeholderView.heightAnchor.constraint(equalToConstant: height)
+    ])
+    
+    let infoLabel = UILabel()
+    infoLabel.text = text
+    infoLabel.textColor = .lightGray
+    infoLabel.textAlignment = .center
+    infoLabel.font = UIFont.systemFont(ofSize: 14)
+    infoLabel.numberOfLines = 0
+    infoLabel.translatesAutoresizingMaskIntoConstraints = false
+    placeholderView.addSubview(infoLabel)
+    
+    NSLayoutConstraint.activate([
+        infoLabel.centerXAnchor.constraint(equalTo: placeholderView.centerXAnchor),
+        infoLabel.centerYAnchor.constraint(equalTo: placeholderView.centerYAnchor),
+        infoLabel.leadingAnchor.constraint(greaterThanOrEqualTo: placeholderView.leadingAnchor, constant: 16),
+        infoLabel.trailingAnchor.constraint(lessThanOrEqualTo: placeholderView.trailingAnchor, constant: -16)
+    ])
+    
+    return cell
 }

@@ -34,3 +34,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 }
 
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    printAvailableFonts()
+    return true
+}
+
+func printAvailableFonts() {
+    for family in UIFont.familyNames.sorted() {
+        print("🔤 Family: \(family)")
+        for name in UIFont.fontNames(forFamilyName: family).sorted() {
+            print("   - \(name)")
+        }
+    }
+}
